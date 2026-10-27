@@ -47,3 +47,8 @@ npm run preview
 - World-map gradient: `#F3CA81` → `#F6AD76` → `#F38E67` → `#F65D53`
 
 The model comparison values are taken from the supplied notebook screenshot. This dashboard shows historical catalogue analysis, not a forecast or official seismic-hazard assessment.
+
+
+## Hero video
+
+Place your video file at `public/video.mp4`. The overview hero plays it automatically, muted, looping, and inline. If the file is missing, the video area will remain blank; add the MP4 to that exact path.
