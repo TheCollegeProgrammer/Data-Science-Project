@@ -130,8 +130,45 @@ export default function App() {
         <section className="kpi-grid"><Kpi label="Filtered records" value={formatNum(stats.count)} note="Within selected filters" /><Kpi label="Mean magnitude" value={stats.meanMag.toFixed(2)} note="Average magnitude" /><Kpi label="Maximum magnitude" value={stats.maxMag.toFixed(1)} note="Largest in selection" /><Kpi label="Mean depth" value={stats.meanDepth ? `${stats.meanDepth.toFixed(1)} km` : 'N/A'} note="Where depth is available" /></section>
         <section className="section-block section-anchor" id="trends"><SectionHeading number="01" title="Seismic trends" subtitle="Explore when earthquakes occurred and how their magnitudes and depths are distributed." /><div className="chart-grid"><ChartCard title="Magnitude distribution" subtitle="Half-magnitude intervals"><ResponsiveContainer width="100%" height={280}><BarChart data={magnitudeDistribution} margin={{ top: 8, right: 8, bottom: 25, left: 0 }}><CartesianGrid strokeDasharray="3 3" stroke="#3b4268" /><XAxis dataKey="magnitude" tick={{ fill: '#BFE9F2', fontSize: 10 }} interval={Math.max(0, Math.floor(magnitudeDistribution.length / 12))} angle={-35} textAnchor="end" /><YAxis tick={{ fill: '#BFE9F2', fontSize: 11 }} /><Tooltip contentStyle={tooltipStyle} /><Bar dataKey="records" name="Records" fill="#BFE9F2" radius={[4, 4, 0, 0]} /></BarChart></ResponsiveContainer></ChartCard>
           <ChartCard title="Earthquakes by year" subtitle="Recorded event count by origin year">{yearly.length ? <ResponsiveContainer width="100%" height={280}><AreaChart data={yearly}><defs><linearGradient id="yearFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#B8FF6A" stopOpacity={0.42} /><stop offset="100%" stopColor="#B8FF6A" stopOpacity={0.02} /></linearGradient></defs><CartesianGrid strokeDasharray="3 3" stroke="#3b4268" /><XAxis dataKey="year" tick={{ fill: '#BFE9F2', fontSize: 11 }} /><YAxis tick={{ fill: '#BFE9F2', fontSize: 11 }} /><Tooltip contentStyle={tooltipStyle} /><Area type="monotone" dataKey="records" stroke="#B8FF6A" fill="url(#yearFill)" strokeWidth={2} /></AreaChart></ResponsiveContainer> : <EmptyState text="No usable date column was found in the CSV." />}</ChartCard>
-          <ChartCard title="Magnitude bands" subtitle="Distribution across four magnitude ranges"><ResponsiveContainer width="100%" height={280}><PieChart><Pie data={magnitudeBands} dataKey="value" nameKey="name" cx="50%" cy="48%" innerRadius={62} outerRadius={96} paddingAngle={3}>{magnitudeBands.map((e, i) => <Cell key={e.name} fill={PALETTE[i + 1]} />)}</Pie><Tooltip contentStyle={tooltipStyle} /><Legend formatter={v => <span style={{ color: '#BFE9F2', fontSize: 11 }}>{v}</span>} /></PieChart></ResponsiveContainer></ChartCard>
-          <ChartCard title="Depth distribution" subtitle="25 km intervals; first 30 bins"><ResponsiveContainer width="100%" height={280}><BarChart data={depthDistribution} margin={{ bottom: 25 }}><CartesianGrid strokeDasharray="3 3" stroke="#3b4268" /><XAxis dataKey="depth" tick={{ fill: '#BFE9F2', fontSize: 10 }} angle={-35} textAnchor="end" interval={2} /><YAxis tick={{ fill: '#BFE9F2', fontSize: 11 }} /><Tooltip contentStyle={tooltipStyle} /><Bar dataKey="records" name="Records" fill="#B8FF6A" radius={[3, 3, 0, 0]} /></BarChart></ResponsiveContainer></ChartCard></div></section>
+<ChartCard title="Magnitude bands" subtitle="Distribution across four magnitude ranges">
+  <ResponsiveContainer width="100%" height={280}>
+    <PieChart>
+      <Pie
+        data={magnitudeBands}
+        dataKey="value"
+        nameKey="name"
+        cx="50%"
+        cy="48%"
+        innerRadius={62}
+        outerRadius={96}
+        paddingAngle={3}
+      >
+        {magnitudeBands.map((e, i) => (
+          <Cell key={e.name} fill={PALETTE[i + 1]} />
+        ))}
+      </Pie>
+
+      <Tooltip
+        contentStyle={{
+          ...tooltipStyle,
+          color: "#FFFFFF",
+          backgroundColor: "#111827",
+          border: "1px solid #FFFFFF"
+        }}
+        itemStyle={{ color: "#FFFFFF" }}
+        labelStyle={{ color: "#FFFFFF" }}
+      />
+
+      <Legend
+        formatter={(value) => (
+          <span style={{ color: "#FFFFFF", fontSize: 11 }}>
+            {value}
+          </span>
+        )}
+      />
+    </PieChart>
+  </ResponsiveContainer>
+</ChartCard>          <ChartCard title="Depth distribution" subtitle="25 km intervals; first 30 bins"><ResponsiveContainer width="100%" height={280}><BarChart data={depthDistribution} margin={{ bottom: 25 }}><CartesianGrid strokeDasharray="3 3" stroke="#3b4268" /><XAxis dataKey="depth" tick={{ fill: '#BFE9F2', fontSize: 10 }} angle={-35} textAnchor="end" interval={2} /><YAxis tick={{ fill: '#BFE9F2', fontSize: 11 }} /><Tooltip contentStyle={tooltipStyle} /><Bar dataKey="records" name="Records" fill="#B8FF6A" radius={[3, 3, 0, 0]} /></BarChart></ResponsiveContainer></ChartCard></div></section>
         <section className="section-block section-anchor" id="world"><SectionHeading number="02" title="Earthquake activity around the world" subtitle="Darker warm shades indicate more records in this catalogue, not higher future earthquake probability." /><div className="world-layout"><div className="panel map-panel"><div className="panel-header"><div><h3>Country-wise earthquake count</h3><p>{countryMethod || 'Counts from loaded records'}</p></div><span className="count-pill">{formatNum(countryCounts.length)} countries</span></div>{mapping && <div className="progress-wrap"><div className="progress-text">Matching coordinates to country boundaries — {mappingProgress}%</div><div className="progress-track"><div style={{ width: `${mappingProgress}%` }} /></div><p>Mapping runs in a background worker.</p></div>}{countryCounts.length ? <><div className="map-wrap"><ComposableMap projectionConfig={{ scale: 145 }} width={900} height={440} style={{ width: '100%', height: 'auto' }}><ZoomableGroup><Geographies geography={WORLD_URL}>{({ geographies }) => geographies.map(geo => { const countryId = String(geo.id ?? geo.properties?.id ?? '').padStart(3, '0'); const name = geo.properties?.name || countryNames[countryId] || `Country ${countryId}`; const count = countryCountMap.get(name.toLowerCase()) || 0; return <Geography key={geo.rsmKey} geography={geo} onClick={() => setSelectedCountry({ country: name, count })} style={{ default: { fill: mapColor(count, maxCountry), stroke: '#3f476c', strokeWidth: .35, outline: 'none' }, hover: { fill: '#BFE9F2', stroke: '#ffffff', strokeWidth: .6, outline: 'none' }, pressed: { fill: '#B8FF6A', outline: 'none' } }} /> })}</Geographies></ZoomableGroup></ComposableMap></div><div className="legend-row"><span>Fewer records</span><div className="legend-gradient" /><span>More records</span></div>{selectedCountry && <div className="selected-country"><strong>{selectedCountry.country}</strong><span>{formatNum(selectedCountry.count)} records</span><button className="text-link" onClick={() => setSelectedCountry(null)}>Clear selection</button></div>}</> : <EmptyState text="Country counts are being calculated. The map will fill in when processing finishes." />}</div>
           <div className="panel country-panel"><div className="panel-header"><div><h3>Country ranking</h3><p>Highest record counts first</p></div></div><input className="search-input" placeholder="Search country..." value={searchCountry} onChange={e => setSearchCountry(e.target.value)} /><div className="country-list">{topCountries.map((c, i) => <button key={c.country} className={`country-row ${selectedCountry?.country === c.country ? 'selected' : ''}`} onClick={() => setSelectedCountry(c)}><span className="rank">{String(i + 1).padStart(2, '0')}</span><span className="country-name">{c.country}<span className="mini-bar"><span style={{ width: `${Math.max(2, c.count / maxCountry * 100)}%` }} /></span></span><strong>{formatNum(c.count)}</strong></button>)}</div>{mapping && <p className="muted-small">Mapping in progress; counts appear when complete.</p>}<div className="offshore-note">{formatNum(offshore)} records could not be matched to a land country and are excluded from country totals.</div></div></div></section>
       </>}
